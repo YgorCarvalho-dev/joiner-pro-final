@@ -2,7 +2,7 @@
 
 // Define o banco de dados (MySQL)
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
