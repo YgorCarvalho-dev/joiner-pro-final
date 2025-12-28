@@ -1,6 +1,7 @@
 // components/ClienteSelect.tsx
 
 'use client';
+import Link from 'next/link';
 
 import React, { useEffect, useState } from 'react';
 import { Loader2, Users, AlertTriangle } from 'lucide-react';
