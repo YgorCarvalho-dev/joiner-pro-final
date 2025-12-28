@@ -1,0 +1,110 @@
+// prisma/schema.prisma
+
+// Define o banco de dados (MySQL)
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Configura o Prisma como gerador de código TypeScript
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+// --- MÓDULO CLIENTES E PROJETOS ---
+
+model Cliente {
+  id        String   @id @default(uuid())
+  nome      String
+  telefone  String?
+  email     String?  @unique
+  endereco  String?
+  criadoEm  DateTime @default(now())
+  
+  projetos Projeto[]
+}
+
+model Projeto {
+  id          String    @id @default(uuid())
+  nome        String
+  descricao   String?   @db.Text
+  valorTotal  Float
+  status      String    @default("ORCAMENTO") 
+  
+  // Campos do Prazo
+  prazoEmDias        Int       @default(30) 
+  dataInicioProducao DateTime? 
+  
+  clienteId   String
+  cliente     Cliente   @relation(fields: [clienteId], references: [id])
+  
+  criadoEm    DateTime  @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  // Relação 1-N com a Lista de Materiais
+  insumosDoProjeto InsumoDoProjeto[] 
+  
+  @@index([clienteId])
+}
+
+
+// --- MÓDULO DE ESTOQUE (MRP) ---
+
+model CategoriaEstoque {
+  id        String    @id @default(uuid())
+  nome      String    @unique 
+  
+  insumos   Insumo[]  
+  
+  @@map("categorias_estoque") 
+}
+
+model Insumo {
+  id            String    @id @default(uuid())
+  nome          String    
+  descricao     String?   @db.Text
+  unidadeMedida String    @default("UN") 
+  
+  estoqueAtual  Float     @default(0) 
+  estoqueMinimo Float     @default(0) 
+  precoCusto    Float     @default(0) 
+  
+  categoriaId   String
+  categoria     CategoriaEstoque @relation(fields: [categoriaId], references: [id])
+  
+  // Relação 1-N com a Lista de Materiais
+  projetosUsando InsumoDoProjeto[] 
+  
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  
+  @@index([categoriaId])
+  @@map("insumos") 
+}
+
+// --- NOVO MÓDULO: PRODUÇÃO (PCP) ---
+// Tabela de Junção (Muitos-para-Muitos) entre Projetos e Insumos
+// Esta é a "Lista de Materiais" ou "Bill of Materials" (BOM) do projeto
+model InsumoDoProjeto {
+  id        String @id @default(uuid())
+
+  // A Relação N-1 com o Projeto
+  projetoId String
+  // onDelete: Cascade = Se o Projeto for deletado, os itens desta lista de materiais também serão.
+  projeto   Projeto @relation(fields: [projetoId], references: [id], onDelete: Cascade) 
+
+  // A Relação N-1 com o Insumo
+  insumoId  String
+  // onDelete: Restrict (Padrão) = Impede que um Insumo seja deletado se estiver em uso em um Projeto.
+  insumo    Insumo @relation(fields: [insumoId], references: [id])
+
+  // A quantidade de insumo necessária para ESTE projeto
+  quantidadeUsada Float @default(1)
+
+  criadoEm DateTime @default(now())
+
+  @@index([projetoId])
+  @@index([insumoId])
+  @@map("insumos_do_projeto") // Nome da tabela
+}
