@@ -40,39 +40,28 @@ async function getProjetos(): Promise<Projeto[]> {
 
 // --- (NOVO) COMPONENTE AUXILIAR PARA O CONTADOR ---
 const PrazoStatus = ({ projeto }: { projeto: Projeto }) => {
-  // Se não estiver em produção ou não tiver data de início, mostra "---"
+  const prazo = projeto.prazoEmDias || 30; // Prazo em dias
+
+  // Sempre mostra o prazo, mas se estiver em produção e tiver data de início, calcula o status
   if (projeto.status !== 'EM_PRODUCAO' || !projeto.dataInicioProducao) {
-    return <span className="text-gray-500">---</span>;
+    return <span className="text-gray-700">{prazo} dias</span>;
   }
 
   try {
     const dataInicio = new Date(projeto.dataInicioProducao);
-    const prazo = projeto.prazoEmDias || 30; // Garante um prazo padrão
-
-    // Calcula a data final prevista (Data de Início + Prazo)
-    const dataFinal = new Date(dataInicio.getTime());
-    dataFinal.setDate(dataFinal.getDate() + prazo);
-
     const hoje = new Date();
-    
-    // Diferença em milissegundos
-    const diffTime = dataFinal.getTime() - hoje.getTime();
-    
-    // Converte para dias (arredondando para cima, pois o dia de hoje conta)
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diasPassados = Math.floor((hoje.getTime() - dataInicio.getTime()) / (1000 * 60 * 60 * 24));
+    const diasRestantes = prazo - diasPassados;
 
-    if (diffDays < 0) {
-      return <span className="font-bold text-red-600">{Math.abs(diffDays)} dias atrasado</span>;
+    if (diasRestantes < 0) {
+      return <span className="text-red-600 font-semibold">Atrasado ({Math.abs(diasRestantes)} dias)</span>;
+    } else if (diasRestantes <= 3) {
+      return <span className="text-orange-600 font-semibold">{diasRestantes} dias restantes</span>;
+    } else {
+      return <span className="text-green-600">{diasRestantes} dias restantes</span>;
     }
-    if (diffDays <= 7) {
-      return <span className="font-bold text-yellow-600">{diffDays} dias restantes</span>;
-    }
-    
-    return <span className="text-green-600">{diffDays} dias restantes</span>;
-
-  } catch (e) {
-    console.error("Erro ao calcular data:", e);
-    return <span className="text-red-500">Erro de data</span>;
+  } catch (error) {
+    return <span className="text-gray-500">Erro no cálculo</span>;
   }
 };
 // --- FIM DO COMPONENTE AUXILIAR ---

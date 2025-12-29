@@ -1,7 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Se tiver alguma configuração específica, coloque aqui.
-  // Por enquanto, deixamos vazio para funcionar o básico.
+  // Desabilitar static optimization para páginas que usam dados dinâmicos
+  experimental: {
+    serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
+  },
+  // Configuração para desenvolvimento
+  ...(process.env.NODE_ENV === 'development' && {
+    // Evitar problemas de static generation durante desenvolvimento
+    output: undefined,
+  }),
 };
 
 export default nextConfig;

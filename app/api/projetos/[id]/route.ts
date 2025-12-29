@@ -22,7 +22,10 @@ export async function GET(request: Request, { params }: Params) {
     try {
         const projeto = await prisma.projeto.findUnique({
             where: { id },
-            include: { cliente: true }
+            include: { 
+                cliente: true,
+                contasReceber: true
+            }
         });
         if (!projeto) {
             return NextResponse.json({ message: "Projeto não encontrado." }, { status: 404 });

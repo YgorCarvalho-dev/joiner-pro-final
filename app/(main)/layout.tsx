@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { LogoutButton } from '@/components/LogoutButton';
 
 
 
@@ -13,7 +14,7 @@ const Sidebar = () => {
     { name: 'Projetos', href: '/projetos' },
     { name: 'Clientes', href: '/clientes' },
     { name: 'Estoque & Insumos', href: '/estoque' },
-    { name: 'Produção (PCP)', href: '/producao' },
+    // { name: 'Produção (PCP)', href: '/producao' },
     { name: 'Financeiro', href: '/financeiro' },
     { name: 'Relatórios', href: '/relatorios' },
   ];
@@ -44,8 +45,12 @@ const Sidebar = () => {
         </ul>
       </nav>
       <footer className="text-xs text-gray-500 pt-4 border-t border-gray-700">
-        © {new Date().getFullYear()} Meu ERP
+        <div className="flex justify-between items-center">
+          <span>© {new Date().getFullYear()} Desenvolvido por <a href="https://www.instagram.com/compiler.tech" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors"><strong>@compiler.tech</strong></a></span>
+          <LogoutButton />
+        </div>
       </footer>
+      
     </aside>
   );
 };
