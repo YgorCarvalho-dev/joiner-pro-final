@@ -4,10 +4,8 @@ import React from 'react';
 import { ArrowLeft, Users, Mail, Phone, MapPin, Download } from 'lucide-react';
 import { unstable_noStore } from 'next/cache';
 import Link from 'next/link';
-<<<<<<< HEAD
+
 export const dynamic = 'force-dynamic';
-=======
->>>>>>> ea5d198b85a9d8916de230991d048781a819e781
 
 interface Cliente {
   id: string;

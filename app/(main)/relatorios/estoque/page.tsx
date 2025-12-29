@@ -4,11 +4,10 @@ import React from 'react';
 import { ArrowLeft, Package, AlertTriangle, CheckCircle, Download } from 'lucide-react';
 import { unstable_noStore } from 'next/cache';
 import Link from 'next/link';import { formatCurrency } from '@/lib/utils';
-<<<<<<< HEAD
+
 export const dynamic = 'force-dynamic';
 
-=======
->>>>>>> ea5d198b85a9d8916de230991d048781a819e781
+
 interface Insumo {
   id: string;
   nome: string;
