@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Plus, Package } from 'lucide-react'; // Ícone para "Estoque"
 import { unstable_noStore } from 'next/cache'; // Importa o noStore
+export const dynamic = 'force-dynamic';
 
 // Tipagem dos dados (importante para o TypeScript)
 interface Categoria {

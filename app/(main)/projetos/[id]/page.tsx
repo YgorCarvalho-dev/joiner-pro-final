@@ -1,21 +1,31 @@
 'use client'; 
 
-import React, { useState, use } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, notFound } from 'next/navigation';
 import { ArrowLeft, HardHat, DollarSign, Package, Edit, Save, X, Loader2, Trash2 } from 'lucide-react';
 import useSWR from 'swr'; 
-import { Modal } from '@/components/Modal'; 
+import { Modal } from '@/components/Modal';
+import { formatCurrency } from '@/lib/utils'; 
 
 // --- (1) IMPORTAR O NOVO COMPONENTE PCP ---
 import PcpMateriais from '@/components/PcpMateriais';
 
 // (Tipagem, Fetcher, EditForm... tudo permanece igual)
 interface Cliente { id: string; nome: string; email: string | null; }
+interface ContaReceber {
+    id: string;
+    descricao: string;
+    valor: number;
+    dataVencimento: string;
+    dataPagamento: string | null;
+    status: string;
+}
 interface Projeto {
     id: string; nome: string; descricao: string | null; valorTotal: number;
     status: string; cliente: Cliente; criadoEm: string;
     prazoEmDias: number; // Adicionado para o EditForm
+    contasReceber: ContaReceber[];
 }
 const fetcher = async (url: string) => {
     const res = await fetch(url);
@@ -135,7 +145,7 @@ const EditForm = ({ projeto, setIsEditing, onUpdateSuccess }: EditFormProps) => 
 
 
 // -- Componente Principal (Detalhes do Projeto) --
-function ProjetoDetalhesPage(props: { params: Promise<{ id: string }> }) { 
+function ProjetoDetalhesPage(props: { params: { id: string } }) { 
     const router = useRouter();
     const [isEditing, setIsEditing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -145,8 +155,7 @@ function ProjetoDetalhesPage(props: { params: Promise<{ id: string }> }) {
     // --- (2) ESTADO PARA CONTROLAR A ABA ATIVA ---
     const [activeTab, setActiveTab] = useState('Geral');
     
-    const params = use(props.params);
-    const { id: projetoId } = params; // Renomeia 'id' para 'projetoId' para clareza
+    const { id: projetoId } = props.params; // Renomeia 'id' para 'projetoId' para clareza
     
     // SWR busca o projeto (incluindo o cliente, graças à API)
     const { data: projeto, error: fetchError, isLoading, mutate } = useSWR<Projeto>(
@@ -277,7 +286,40 @@ function ProjetoDetalhesPage(props: { params: Promise<{ id: string }> }) {
                     )}
 
                     {activeTab === 'Financeiro' && (
-                        <p>Funcionalidade "Financeiro" (Contas a Pagar/Receber) ainda não implementada.</p>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-lg font-semibold">Contas a Receber</h3>
+                                <Link
+                                    href={`/financeiro/contas-receber/novo?projetoId=${projetoId}`}
+                                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm"
+                                >
+                                    Nova Conta a Receber
+                                </Link>
+                            </div>
+                            <div className="space-y-2">
+                                {projeto.contasReceber.map((conta) => (
+                                    <div key={conta.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                                        <div>
+                                            <p className="font-medium">{conta.descricao}</p>
+                                            <p className="text-sm text-gray-600">
+                                                Vence em: {new Date(conta.dataVencimento).toLocaleDateString('pt-BR')}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold">{formatCurrency(conta.valor)}</p>
+                                            <span className={`text-xs px-2 py-1 rounded ${
+                                                conta.status === 'RECEBIDO' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                                            }`}>
+                                                {conta.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                                {projeto.contasReceber.length === 0 && (
+                                    <p className="text-gray-500 text-center py-4">Nenhuma conta a receber cadastrada para este projeto.</p>
+                                )}
+                            </div>
+                        </div>
                     )}
                     
                     {activeTab === 'Produção (OS)' && (
@@ -334,6 +376,6 @@ const Card = ({ icon, title, value, href }: {
 };
 
 // O export default (corrigido)
-export default function SWRWrapper(props: { params: Promise<{ id: string }> }) {
+export default function SWRWrapper(props: { params: { id: string } }) {
     return <ProjetoDetalhesPage {...props} />;
 }

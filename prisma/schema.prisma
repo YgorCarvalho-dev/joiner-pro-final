@@ -1,6 +1,6 @@
 // prisma/schema.prisma
 
-// Define o banco de dados (MySQL)
+// Define o banco de dados (PostgreSQL)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -9,6 +9,22 @@ datasource db {
 // Configura o Prisma como gerador de código TypeScript
 generator client {
   provider = "prisma-client-js"
+}
+
+
+// --- MÓDULO DE AUTENTICAÇÃO ---
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String   // Hash da senha
+  role      String   @default("USER") // USER, ADMIN
+  ativo     Boolean  @default(true)
+  
+  criadoEm  DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@map("users")
 }
 
 
@@ -44,6 +60,9 @@ model Projeto {
   
   // Relação 1-N com a Lista de Materiais
   insumosDoProjeto InsumoDoProjeto[] 
+  
+  // Relação 1-N com Contas a Receber
+  contasReceber ContaReceber[]
   
   @@index([clienteId])
 }
@@ -107,4 +126,36 @@ model InsumoDoProjeto {
   @@index([projetoId])
   @@index([insumoId])
   @@map("insumos_do_projeto") // Nome da tabela
+}
+
+
+// --- MÓDULO FINANCEIRO ---
+
+model ContaPagar {
+  id          String   @id @default(uuid())
+  descricao   String
+  valor       Float
+  dataVencimento DateTime
+  dataPagamento  DateTime?
+  status      String   @default("PENDENTE") // PENDENTE, PAGO, VENCIDO
+  
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+model ContaReceber {
+  id          String   @id @default(uuid())
+  descricao   String
+  valor       Float
+  dataVencimento DateTime
+  dataPagamento  DateTime?
+  status      String   @default("PENDENTE") // PENDENTE, RECEBIDO, VENCIDO
+  
+  projetoId   String?
+  projeto     Projeto? @relation(fields: [projetoId], references: [id])
+  
+  criadoEm    DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  @@index([projetoId])
 }

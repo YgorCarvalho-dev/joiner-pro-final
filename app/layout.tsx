@@ -3,6 +3,7 @@
 import './globals.css'; // <--- Não esqueça de importar o seu CSS global aqui!
 import type { Metadata } from 'next'; // Importa a tipagem do Next.js para metadados
 import { Inter } from 'next/font/google'; // Exemplo de importação de fonte
+import { Providers } from '@/components/providers';
 
 // Configuração da Fonte (Exemplo)
 const inter = Inter({ subsets: ['latin'] });
@@ -23,13 +24,15 @@ export default function RootLayout({
         // Define o idioma e importa as classes de fontes no HTML
         <html lang="pt-BR">
             {/* A tag <body> aplica a fonte e garante que o corpo do documento seja renderizado.
-        As classes do Tailwind (como 'antialiased') podem ser aplicadas aqui. 
+        As classes do Tailwind (como 'antialiased') podem ser aplicadas aqui.
       */}
             <body className={inter.className + ' antialiased'}>
-                {/* 'children' representa todo o conteúdo das rotas aninhadas 
-          (incluindo o seu MainLayout dentro de (main)). 
+                <Providers>
+                    {/* 'children' representa todo o conteúdo das rotas aninhadas
+          (incluindo o seu MainLayout dentro de (main)).
         */}
-                {children}
+                    {children}
+                </Providers>
 
                 <div id="modal-root" />
             </body>

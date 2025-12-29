@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Joiner PRO - Sistema ERP para Marcenarias
 
-## Getting Started
+Sistema de Planejamento de Recursos Empresariais (ERP) focado em Marcenarias e Indústrias Moveleiras.
 
-First, run the development server:
+## 🚀 Funcionalidades
+
+- **Dashboard** com métricas em tempo real
+- **Gestão de Clientes** - Cadastro e acompanhamento
+- **Gestão de Projetos** - Controle de produção e prazos
+- **Controle de Estoque** - Insumos e materiais
+- **Módulo Financeiro** - Contas a pagar/receber
+- **Relatórios** - Análises e exportação de dados
+- **Sistema de Autenticação** - Controle de acesso seguro
+
+## 🛠️ Tecnologias Utilizadas
+
+- **Next.js 14** - Framework React com App Router
+- **TypeScript** - Tipagem estática
+- **Prisma** - ORM para PostgreSQL
+- **NextAuth.js** - Autenticação
+- **Tailwind CSS** - Estilização
+- **PostgreSQL** - Banco de dados
+
+## 📋 Pré-requisitos
+
+- Node.js 18+
+- PostgreSQL
+- npm ou yarn
+
+## 🔧 Instalação e Configuração
+
+1. **Clone o repositório e instale as dependências:**
+   ```bash
+   npm install
+   ```
+
+2. **Configure as variáveis de ambiente:**
+   ```bash
+   cp .env.example .env
+   ```
+   Edite o arquivo `.env` com suas configurações:
+   - `DATABASE_URL` - URL de conexão com PostgreSQL
+   - `NEXTAUTH_SECRET` - Chave secreta para NextAuth.js
+   - `NEXTAUTH_URL` - URL base da aplicação
+
+3. **Configure o banco de dados:**
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
+
+4. **Crie o primeiro usuário administrador:**
+   ```bash
+   npx ts-node create-admin.ts <username> <password>
+   ```
+   Exemplo:
+   ```bash
+   npx ts-node create-admin.ts admin minha_senha_segura
+   ```
+
+5. **Inicie o servidor de desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+
+6. **Acesse a aplicação:**
+   - Abra [http://localhost:3000](http://localhost:3000)
+   - Faça login com as credenciais criadas
+
+## 🔐 Sistema de Autenticação
+
+O sistema utiliza autenticação baseada em credenciais (usuário/senha):
+
+- **Usuários são criados manualmente** pelo administrador
+- **Middleware protege todas as rotas** automaticamente
+- **Sessões são gerenciadas** pelo NextAuth.js
+- **Logout seguro** disponível na sidebar
+
+### Criando Novos Usuários
+
+Para criar novos usuários, execute o script `create-admin.ts`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npx ts-node create-admin.ts novo_usuario senha_segura
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Gerenciamento de Usuários
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Atualmente, o gerenciamento de usuários é feito diretamente no banco de dados. Futuras versões incluirão interface administrativa.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📊 Estrutura do Banco de Dados
 
-## Learn More
+- **Users** - Controle de usuários e permissões
+- **Clientes** - Cadastro de clientes
+- **Projetos** - Gestão de projetos e produção
+- **Insumos** - Controle de estoque e materiais
+- **ContasPagar/Receber** - Módulo financeiro
 
-To learn more about Next.js, take a look at the following resources:
+## 🚀 Deploy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Para produção, configure as variáveis de ambiente adequadamente e execute:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npm start
+```
 
-## Deploy on Vercel
+## 📝 Scripts Disponíveis
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `npm run dev` - Servidor de desenvolvimento
+- `npm run build` - Build para produção
+- `npm run start` - Servidor de produção
+- `npm run lint` - Verificação de código
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🤝 Contribuição
+
+Desenvolvido por [@compiler.tech](https://www.instagram.com/compiler.tech)
+
+## 📄 Licença
+
+Este projeto é propriedade da empresa e seu uso é restrito aos colaboradores autorizados.

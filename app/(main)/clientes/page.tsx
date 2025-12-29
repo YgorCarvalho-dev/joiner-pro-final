@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Plus, User, Mail, Phone } from 'lucide-react';
 import { unstable_noStore } from 'next/cache';
 
+export const dynamic = 'force-dynamic';
+
 // Tipagem baseada nos dados que virão da API
 interface Cliente {
     id: string;
