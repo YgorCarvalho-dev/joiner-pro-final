@@ -2,7 +2,11 @@
 
 'use client';
 
+<<<<<<< HEAD
 import React, { useState, useEffect, Suspense } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -19,19 +23,29 @@ interface FormData {
   projetoId: string;
 }
 
+<<<<<<< HEAD
 // 1. Movemos toda a lógica que usa useSearchParams para este componente interno
 function FormularioContaReceber() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const projetoIdFromQuery = searchParams.get('projetoId');
 
+=======
+export default function NovaContaReceberPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const projetoIdFromQuery = searchParams.get('projetoId');
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
   const [formData, setFormData] = useState<FormData>({
     descricao: '',
     valor: '',
     dataVencimento: '',
     projetoId: projetoIdFromQuery || '',
   });
+<<<<<<< HEAD
 
+=======
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -52,6 +66,7 @@ function FormularioContaReceber() {
     fetchProjetos();
   }, []);
 
+<<<<<<< HEAD
   // Se o ID vier da URL, atualiza o form quando a lista de projetos carregar ou mudar
   useEffect(() => {
     if (projetoIdFromQuery) {
@@ -59,6 +74,8 @@ function FormularioContaReceber() {
     }
   }, [projetoIdFromQuery]);
 
+=======
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -104,7 +121,11 @@ function FormularioContaReceber() {
   };
 
   return (
+<<<<<<< HEAD
     <>
+=======
+    <div className="p-6">
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
       <div className="flex items-center gap-4 mb-6">
         <Link
           href="/financeiro"
@@ -188,6 +209,7 @@ function FormularioContaReceber() {
           </button>
         </form>
       </div>
+<<<<<<< HEAD
     </>
   );
 }
@@ -203,6 +225,8 @@ export default function NovaContaReceberPage() {
       }>
         <FormularioContaReceber />
       </Suspense>
+=======
+>>>>>>> ea5d198b85a9d8916de230991d048781a819e781
     </div>
   );
 }
