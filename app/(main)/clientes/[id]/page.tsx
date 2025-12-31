@@ -1,9 +1,9 @@
-'use client'; // Página de cliente com busca de dados via SWR
+'use client';
 
-import React, { use } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { ArrowLeft, Loader2, User, Phone, Mail, Home, Package } from 'lucide-react';
+import { useParams, notFound } from 'next/navigation'; // Adicionado useParams
+import { ArrowLeft, Loader2, User, Phone, Mail, Home } from 'lucide-react';
 import useSWR from 'swr';
 
 // Tipagem
@@ -16,7 +16,12 @@ interface Cliente {
 // Fetcher do SWR
 const fetcher = async (url: string) => {
     const res = await fetch(url);
-    if (res.status === 404) notFound(); // Redireciona para 404 se o cliente não existir
+    if (res.status === 404) {
+        // Jogar um erro específico para 404 que o SWR possa capturar
+        const error = new Error('Cliente não encontrado');
+        (error as any).status = 404;
+        throw error;
+    }
     if (!res.ok) throw new Error('Falha ao buscar dados do cliente.');
     return res.json();
 };
@@ -35,16 +40,34 @@ const InfoCard = ({ icon, title, value }: { icon: React.ReactNode, title: string
 );
 
 // Componente Principal
-function ClienteDetalhesPage(props: { params: Promise<{ id: string }> }) {
-    const params = use(props.params); // Resolve a promise dos params
+export default function ClienteDetalhesPage() {
+    // CORREÇÃO: Usamos o hook useParams() em vez de receber props.params
+    // Isso evita o erro de serialização/Promise no Client Component
+    const params = useParams();
+    const id = params?.id as string;
 
     const { data: cliente, error, isLoading } = useSWR<Cliente>(
-        `/api/clientes/${params.id}`,
-        fetcher
+        id ? `/api/clientes/${id}` : null, // Só busca se tiver ID
+        fetcher,
+        {
+            onError: (err) => {
+                // Se o fetcher lançou erro 404, podemos redirecionar ou mostrar UI específica
+                if (err.status === 404) notFound(); 
+            }
+        }
     );
 
-    if (isLoading) return <div className="text-center p-10"><Loader2 className="w-8 h-8 mx-auto animate-spin text-blue-500" /> Carregando Cliente...</div>;
-    if (error) return <div className="text-center p-10 text-red-600">Erro: {error.message}</div>;
+    if (isLoading) return <div className="text-center p-10 flex flex-col items-center gap-2"><Loader2 className="w-8 h-8 animate-spin text-blue-500" /> Carregando Cliente...</div>;
+    
+    // Tratamento de erro visual
+    if (error) return (
+        <div className="text-center p-10 text-red-600">
+            <h3 className="text-lg font-bold">Erro ao carregar</h3>
+            <p>{error.message}</p>
+            <Link href="/clientes" className="mt-4 inline-block text-blue-600 hover:underline">Voltar para lista</Link>
+        </div>
+    );
+
     if (!cliente) return null;
 
     return (
@@ -61,7 +84,6 @@ function ClienteDetalhesPage(props: { params: Promise<{ id: string }> }) {
                         {cliente.nome}
                     </h1>
                 </div>
-                {/* (Você pode adicionar um botão "Editar Cliente" aqui) */}
             </div>
 
             {/* Informações de Contato */}
@@ -93,9 +115,4 @@ function ClienteDetalhesPage(props: { params: Promise<{ id: string }> }) {
             </div>
         </div>
     );
-}
-
-// Wrapper para SWR e Export Default
-export default function ClienteDetalhesWrapper(props: { params: Promise<{ id: string }> }) {
-    return <ClienteDetalhesPage {...props} />;
 }

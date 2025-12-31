@@ -1,11 +1,11 @@
-'use client'; // Esta página é um formulário complexo, usamos 'client'
+'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react'; // Removi o 'use'
 import Link from 'next/link';
-import { useRouter, notFound } from 'next/navigation';
-import useSWR from 'swr'; // Usamos SWR para buscar os dados
+import { useRouter, notFound, useParams } from 'next/navigation'; // Adicionei useParams
+import useSWR from 'swr';
 import { ArrowLeft, Save, Loader2, AlertTriangle, Trash2 } from 'lucide-react';
-import { Modal } from '@/components/Modal'; // Importa o Modal de confirmação
+import { Modal } from '@/components/Modal';
 
 // --- TIPAGEM ---
 interface Categoria {
@@ -32,14 +32,17 @@ interface FormData {
     precoCusto: string;
 }
 
-// Fetcher (Buscador de dados) para o SWR
+// Fetcher
 const fetcher = (url: string) => fetch(url).then(res => {
-    if (res.status === 404) notFound();
+    if (res.status === 404) {
+        const error = new Error('Insumo não encontrado');
+        (error as any).status = 404;
+        throw error;
+    }
     if (!res.ok) throw new Error('Falha ao buscar dados.');
     return res.json();
 });
 
-// Opções de Unidade de Medida
 const unidadesMedida = [
   { id: 'UN', nome: 'Unidade (UN)' },
   { id: 'M', nome: 'Metro Linear (M)' },
@@ -52,30 +55,31 @@ const unidadesMedida = [
 /**
  * Página de Edição de Insumo
  */
-function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
+export default function InsumoEditPage() {
   const router = useRouter();
   
-  // 1. Resolve o bug 'params is a Promise' do Next.js/Turbopack
-  const params = use(props.params);
-  const { id } = params;
+  // 1. CORREÇÃO: Usamos useParams direto do navegador
+  // Isso substitui o 'props.params' e o 'use(params)' que estavam quebrando
+  const params = useParams();
+  const id = params?.id as string; 
 
   // 2. Estado do Formulário
-  const [formData, setFormData] = useState<FormData | null>(null); // Inicia nulo
+  const [formData, setFormData] = useState<FormData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // 3. Busca de Dados (SWR)
-  // Busca o Insumo específico
   const { data: insumoData, error: insumoError, isLoading: isLoadingInsumo } = 
-    useSWR<Insumo>(`/api/estoque/${id}`, fetcher);
+    useSWR<Insumo>(id ? `/api/estoque/${id}` : null, fetcher, {
+        onError: (err) => { if (err.status === 404) notFound(); }
+    });
   
-  // Busca TODAS as categorias (para o <select>)
   const { data: categorias, error: categoriasError, isLoading: isLoadingCategorias } = 
     useSWR<Categoria[]>('/api/estoque/categorias', fetcher);
 
-  // 4. Efeito para preencher o formulário QUANDO os dados chegarem
+  // 4. Efeito para preencher o formulário
   useEffect(() => {
     if (insumoData) {
       setFormData({
@@ -83,15 +87,14 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
         descricao: insumoData.descricao || '',
         categoriaId: insumoData.categoriaId,
         unidadeMedida: insumoData.unidadeMedida,
-        // Converte os números para string (formato BR com vírgula)
         estoqueAtual: String(insumoData.estoqueAtual).replace('.', ','),
         estoqueMinimo: String(insumoData.estoqueMinimo).replace('.', ','),
         precoCusto: String(insumoData.precoCusto).replace('.', ','),
       });
     }
-  }, [insumoData]); // Roda sempre que 'insumoData' mudar
+  }, [insumoData]);
 
-  // 5. Handlers (Manipuladores de Ação)
+  // 5. Handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!formData) return;
     setFormData({
@@ -100,7 +103,6 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
     });
   };
 
-  // PATCH (Atualizar)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData) return;
@@ -111,7 +113,7 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
       const res = await fetch(`/api/estoque/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData), // Envia o estado completo (API vai parsear)
+        body: JSON.stringify(formData),
       });
 
       if (!res.ok) {
@@ -119,7 +121,7 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
         throw new Error(data.message || 'Falha ao salvar o insumo.');
       }
 
-      router.push('/estoque'); // Sucesso, volta para a lista
+      router.push('/estoque');
 
     } catch (err: any) {
       setError(err.message);
@@ -128,7 +130,6 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
     }
   };
 
-  // DELETE (Deletar)
   const handleDeleteConfirm = async () => {
     setIsModalOpen(false);
     setIsDeleting(true);
@@ -137,7 +138,7 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
     try {
         const res = await fetch(`/api/estoque/${id}`, { method: 'DELETE' });
         if (res.status === 204) {
-            router.push('/estoque'); // Sucesso
+            router.push('/estoque');
         } else {
             const data = await res.json();
             throw new Error(data.message || "Falha ao deletar.");
@@ -151,14 +152,12 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
 
   // --- RENDERIZAÇÃO ---
 
-  // Estados de Carregamento e Erro
   if (isLoadingInsumo || isLoadingCategorias) {
     return <div className="text-center p-10"><Loader2 className="w-8 h-8 mx-auto animate-spin text-blue-500" /> Carregando dados...</div>;
   }
   if (insumoError) return <div className="text-center p-10 text-red-600">Erro ao carregar insumo: {insumoError.message}</div>;
   if (categoriasError) return <div className="text-center p-10 text-red-600">Erro ao carregar categorias: {categoriasError.message}</div>;
   
-  // Se o formulário ainda não foi preenchido (esperando useEffect)
   if (!formData) {
      return <div className="text-center p-10"><Loader2 className="w-8 h-8 mx-auto animate-spin text-gray-400" /> Preparando formulário...</div>;
   }
@@ -270,7 +269,6 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
 
         {/* Botões de Ação */}
         <div className="flex justify-between items-center">
-            {/* Botão Deletar (Lado Esquerdo) */}
             <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
@@ -285,7 +283,6 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
                 <span className="ml-2">Deletar Insumo</span>
             </button>
             
-            {/* Botão Salvar (Lado Direito) */}
             <button
                 type="submit"
                 disabled={isSaving || isDeleting || isLoadingInsumo || isLoadingCategorias}
@@ -301,7 +298,6 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
         </div>
       </form>
       
-      {/* Modal de Confirmação de Exclusão */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -315,8 +311,4 @@ function InsumoEditPage(props: { params: Promise<{ id: string }> }) {
     </div>
   );
 }
-
-// O export default (necessário para o 'use')
-export default function InsumoEditWrapper(props: { params: Promise<{ id: string }> }) {
-    return <InsumoEditPage {...props} />;
-}
+// NÃO PRECISA MAIS DO WRAPPER AQUI EMBAIXO
