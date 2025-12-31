@@ -30,26 +30,69 @@ export async function GET() {
   }
 }
 
-// Rota POST: Cria uma nova conta a receber
+// Rota POST: Cria nova conta (Com lógica de parcelamento e Projeto)
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { descricao, valor, dataVencimento, projetoId } = body;
+    const { descricao, valor, dataVencimento, projetoId, parcelas, metodoPagamento } = body;
 
     if (!descricao || !valor || !dataVencimento) {
-      return NextResponse.json({ message: "Descrição, valor e data de vencimento são obrigatórios." }, { status: 400 });
+      return NextResponse.json({ message: "Dados obrigatórios faltando." }, { status: 400 });
     }
 
-    const novaConta = await prisma.contaReceber.create({
-      data: {
-        descricao,
-        valor: parseFloat(valor),
-        dataVencimento: new Date(dataVencimento),
-        projetoId: projetoId || null,
-      },
-    });
+    const valorTotal = parseFloat(valor);
+    const numParcelas = parseInt(parcelas) || 1;
+    const dataBase = new Date(dataVencimento);
+    
+    // Tratamento do projetoId (pode vir vazio ou string vazia)
+    const projetoConnect = projetoId ? { projetoId } : {};
 
-    return NextResponse.json(novaConta, { status: 201 });
+    // --- CENÁRIO 1: RECEBIMENTO À VISTA (1x) ---
+    // Já nasce RECEBIDO (Dinheiro no caixa)
+    if (numParcelas === 1) {
+      const novaConta = await prisma.contaReceber.create({
+        data: {
+          descricao: `${descricao} (À Vista - ${metodoPagamento || 'Dinheiro'})`,
+          valor: valorTotal,
+          dataVencimento: dataBase,
+          status: 'RECEBIDO', // <--- Já entra como recebido
+          dataPagamento: new Date(), // Data de hoje
+          ...projetoConnect, // Vincula ao projeto se existir
+        },
+      });
+      return NextResponse.json(novaConta, { status: 201 });
+    }
+
+    // --- CENÁRIO 2: PARCELADO (>1x) ---
+    const operacoes = [];
+    const valorParcela = valorTotal / numParcelas;
+
+    for (let i = 0; i < numParcelas; i++) {
+      // Calcula o vencimento (Mês Base + i)
+      const dataParcela = new Date(dataBase);
+      dataParcela.setMonth(dataParcela.getMonth() + i);
+
+      const descricaoParcela = `${descricao} (${i + 1}/${numParcelas})`;
+
+      operacoes.push(
+        prisma.contaReceber.create({
+          data: {
+            descricao: descricaoParcela,
+            valor: valorParcela,
+            dataVencimento: dataParcela,
+            status: 'PENDENTE', // Parcelas nascem pendentes
+            dataPagamento: null,
+            ...projetoConnect, // Todas as parcelas ficam vinculadas ao projeto
+          }
+        })
+      );
+    }
+
+    // Executa tudo de uma vez
+    await prisma.$transaction(operacoes);
+
+    return NextResponse.json({ message: `${numParcelas} parcelas criadas com sucesso.` }, { status: 201 });
+
   } catch (error) {
     console.error("Erro ao criar conta a receber:", error);
     return NextResponse.json(
