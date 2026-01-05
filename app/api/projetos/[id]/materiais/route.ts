@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 interface Params {
-    params: { itemId: string }; // O 'id' aqui é o ID do PROJETO
+    params: { id: string }; // O 'id' aqui é o ID do PROJETO
 }
 
 /**
  * Rota GET: Lista todos os insumos (materiais) de UM projeto específico
  */
 export async function GET(request: Request, { params }: Params) {
-    const { itemId: projetoId } = await Promise.resolve(params); // Renomeia 'id' para 'projetoId'
+    const { id: projetoId } = await Promise.resolve(params); // Renomeia 'id' para 'projetoId'
 
     try {
         const materiais = await prisma.insumoDoProjeto.findMany({
@@ -39,7 +39,7 @@ export async function GET(request: Request, { params }: Params) {
  * Rota POST: Adiciona um novo insumo (material) a um projeto
  */
 export async function POST(request: Request, { params }: Params) {
-    const { itemId: projetoId } = await Promise.resolve(params); // ID do Projeto
+    const { id: projetoId } = await Promise.resolve(params); // ID do Projeto
 
     try {
         const body = await request.json();
