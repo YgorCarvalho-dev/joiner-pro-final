@@ -23,14 +23,15 @@ const Sidebar = () => {
     <aside className="w-64 bg-gray-800 text-white flex flex-col p-4 h-full">
 
       <div className="text-xl font-bold mb-8 border-b border-gray-700 pb-4">
-        {/* <Image
-          src="/icons/2.ico   "
-          alt="JoinerProimg"
-          width={80}
-          height={100}
-        // className='mr-3'
-        /> */}
-        <span>Joiner PRO</span>
+       <Image
+              src="/icons/logo.png"       // O caminho começa com / (que representa a pasta public)
+              alt="Logo Joiner PRO"
+              width={200}           // Ajuste a largura conforme necessário (a sidebar tem ~256px)
+              height={20}           // A altura ajusta proporcionalmente se usar 'auto' no css, ou defina aqui
+              className="object-contain h-auto" // Garante que a imagem não distorça
+              priority              // Carrega mais rápido por ser a imagem principal
+            />
+        {/* <span>Joiner PRO</span> */}
       </div>
       <nav className="flex-grow">
         <ul>
