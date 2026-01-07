@@ -45,7 +45,7 @@ const Sidebar = () => {
           ))}
         </ul>
       </nav>
-      <footer className="text-xs text-gray-500 pt-4 border-t border-gray-700">
+      <footer className="text-[9px] text-gray-500 pt-4 border-t border-gray-700">
         <div className="flex justify-between items-center">
           <span>© {new Date().getFullYear()} Desenvolvido por <a href="https://www.instagram.com/compiler.tech" target="_blank" rel="noopener noreferrer" className="hover:text-gray-300 transition-colors"><strong>@compiler.tech</strong></a></span>
           <LogoutButton />
